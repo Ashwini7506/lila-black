@@ -1,0 +1,4 @@
+pyarrow
+pandas
+supabase
+python-dotenv
