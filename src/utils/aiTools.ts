@@ -4,7 +4,7 @@ import { Region, MapId } from '@/types'
 // ── Helper ────────────────────────────────────────────────────────────────────
 
 function applyRegionFilter(
-  query: ReturnType<ReturnType<typeof supabaseAdmin>['from']>,
+  query: any,
   region: Region | null
 ) {
   if (!region) return query
