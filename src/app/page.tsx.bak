@@ -1,0 +1,181 @@
+'use client'
+import { useState } from 'react'
+import { MapId, EventType } from '@/types'
+import { useMatchData, useMatches } from '@/hooks/useMatchData'
+import { usePlayback } from '@/hooks/usePlayback'
+import { useInsights } from '@/hooks/useInsights'
+import { useRegionSelect } from '@/hooks/useRegionSelect'
+import { useAIChat } from '@/hooks/useAIChat'
+import MapViewer from '@/components/MapViewer'
+import Sidebar from '@/components/Sidebar'
+import Timeline from '@/components/Timeline'
+import KPIPanel from '@/components/KPIPanel'
+import InsightsOverlay from '@/components/InsightsOverlay'
+import AIAssistant from '@/components/AIAssistant'
+
+const ALL_EVENT_TYPES: EventType[] = ['Kill', 'Killed', 'BotKill', 'BotKilled', 'KilledByStorm', 'Loot']
+
+export default function Home() {
+  const [mapId, setMapId] = useState<MapId>('AmbroseValley')
+  const [dateLabel, setDateLabel] = useState('February_10')
+  const [matchIds, setMatchIds] = useState<string[]>([])
+  const [showHumans, setShowHumans] = useState(true)
+  const [showBots, setShowBots] = useState(true)
+  const [activeEventTypes, setActiveEventTypes] = useState<EventType[]>(ALL_EVENT_TYPES)
+  const [viewMode, setViewMode] = useState<'paths' | 'heatmap'>('paths')
+  const [showInsights, setShowInsights] = useState(true)
+  const [showInsightsPanel, setShowInsightsPanel] = useState(false)
+  const [showAI, setShowAI] = useState(false)
+
+  const { matches } = useMatches(mapId, dateLabel)
+  const { events, loading } = useMatchData(matchIds)
+  const playback = usePlayback(events)
+  const { insights } = useInsights(matchIds, mapId)
+  const region = useRegionSelect()
+  const ai = useAIChat(matchIds[0] ?? null, mapId, region.selectedRegion)
+
+  const toggleEventType = (t: EventType) =>
+    setActiveEventTypes(prev =>
+      prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]
+    )
+
+  return (
+    <div className="fixed inset-0 flex bg-gray-950 text-white overflow-hidden">
+      <Sidebar
+        mapId={mapId}
+        dateLabel={dateLabel}
+        matchIds={matchIds}
+        matches={matches}
+        showHumans={showHumans}
+        showBots={showBots}
+        activeEventTypes={activeEventTypes}
+        viewMode={viewMode}
+        showInsights={showInsights}
+        selectedRegion={region.selectedRegion}
+        onMapChange={(m) => { setMapId(m); setMatchIds([]) }}
+        onDateChange={(d) => { setDateLabel(d); setMatchIds([]) }}
+        onMatchToggle={(id) => setMatchIds(prev =>
+          prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+        )}
+        onClearMatches={() => setMatchIds([])}
+        onSelectAllMatches={() => setMatchIds(matches.map(m => m.match_id))}
+        onToggleHumans={() => setShowHumans(p => !p)}
+        onToggleBots={() => setShowBots(p => !p)}
+        onToggleEventType={toggleEventType}
+        onViewModeChange={setViewMode}
+        onToggleInsights={() => setShowInsights(p => !p)}
+        onClearRegion={region.clearRegion}
+      />
+
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top bar */}
+        <div className="h-11 bg-gray-950 border-b border-gray-800 flex items-center px-4 gap-3 shrink-0">
+          {matchIds.length > 0 ? (
+            <div className="flex items-center gap-2 animate-fade-slide">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-glow-pulse" />
+              {matchIds.length === 1 ? (
+                <span className="text-xs text-gray-400 font-mono">{matchIds[0].slice(0, 16)}…</span>
+              ) : (
+                <span className="text-xs font-bold text-white bg-blue-600 px-2 py-0.5 rounded-full">
+                  {matchIds.length} matches
+                </span>
+              )}
+              <span className="text-gray-700">·</span>
+              <span className="text-xs text-blue-400 tabular-nums">{events.length.toLocaleString()} events</span>
+            </div>
+          ) : (
+            <span className="text-xs text-gray-700 italic">Select a match to begin</span>
+          )}
+          {loading && (
+            <span className="text-xs text-blue-400 animate-pulse bg-blue-950 px-2 py-0.5 rounded">
+              Loading…
+            </span>
+          )}
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => setShowInsightsPanel(p => !p)}
+              className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all ${
+                showInsightsPanel
+                  ? 'bg-orange-600 text-white shadow-sm'
+                  : 'bg-gray-900 text-gray-500 border border-gray-800 hover:border-orange-700 hover:text-orange-400'
+              }`}
+            >
+              ⚠ Insights
+            </button>
+          </div>
+        </div>
+
+        {/* Map + insights row */}
+        <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 relative overflow-hidden bg-gray-950">
+            {matchIds.length > 0 ? (
+              <MapViewer
+                mapId={mapId}
+                events={events}
+                currentTime={playback.currentTime}
+                showHumans={showHumans}
+                showBots={showBots}
+                activeEventTypes={activeEventTypes}
+                viewMode={viewMode}
+                insights={insights}
+                showInsights={showInsights}
+                matchIds={matchIds}
+                matches={matches}
+                selectedRegion={region.selectedRegion}
+                draftRegion={region.draftRegion}
+                onMouseDown={region.onMouseDown}
+                onMouseMove={region.onMouseMove}
+                onMouseUp={region.onMouseUp}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center text-gray-600">
+                  <div className="text-5xl mb-4">◎</div>
+                  <p className="text-sm">Select a map, date, and match to begin</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {showInsightsPanel && (
+            <div className="w-64 bg-gray-900 border-l border-gray-700 flex flex-col shrink-0 overflow-hidden">
+              <div className="p-3 border-b border-gray-700 flex items-center justify-between shrink-0">
+                <span className="text-xs font-bold uppercase tracking-wider text-orange-400">Insights</span>
+                <button onClick={() => setShowInsightsPanel(false)} className="text-gray-600 hover:text-white text-xs">✕</button>
+              </div>
+              <InsightsOverlay insights={insights} />
+            </div>
+          )}
+        </div>
+
+        <Timeline
+          currentTime={playback.currentTime}
+          isPlaying={playback.isPlaying}
+          speed={playback.speed}
+          minTime={playback.minTime}
+          maxTime={playback.maxTime}
+          duration={playback.duration}
+          matchCount={matchIds.length}
+          onTogglePlay={playback.togglePlay}
+          onSeek={playback.seek}
+          onSetSpeed={playback.setSpeed}
+        />
+
+        <AIAssistant
+          messages={ai.messages}
+          isLoading={ai.isLoading}
+          onSend={ai.sendMessage}
+          onClear={ai.clearMessages}
+          isOpen={showAI}
+          onToggle={() => setShowAI(p => !p)}
+        />
+      </div>
+
+      <KPIPanel
+        events={events}
+        selectedRegion={region.selectedRegion}
+        currentTime={matchIds.length === 1 ? playback.currentTime : Infinity}
+      />
+    </div>
+  )
+}
