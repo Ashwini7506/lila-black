@@ -4,16 +4,12 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase'
 
 const FEATURES = [
-  { icon: '🗺', title: 'Player Journeys on the Map',   desc: 'Every movement, kill, death, loot pickup, and storm death rendered directly on the actual minimap. World coordinates from the game engine are mapped precisely to pixel positions on the image.'                },
-  { icon: '👤', title: 'Humans vs Bots — Visually',    desc: 'Bot kills and bot deaths are rendered in distinct colours, separate from human combat events. Toggle human events and bot events on or off independently. Bot detection is automatic from the raw data — no manual tagging.'  },
-  { icon: '🎯', title: 'Event Type Markers',           desc: 'Kills, deaths, bot kills, storm deaths, and loot pickups each have a distinct colour and marker shape. Filter to any combination — see only what you need.'                                                       },
-  { icon: '🗂', title: 'Filter by Map, Date & Match',  desc: 'Switch between AmbroseValley, GrandRift, and Lockdown. Filter by date label (February 10–14). Select one match or overlay all 199+ simultaneously.'                                                              },
-  { icon: '⏱', title: 'Timeline & Match Playback',    desc: 'Scrub through any match frame by frame. Play, pause, seek, set speed (0.5×, 1×, 2×, 4×, 10×). Watch the entire match unfold on the map in real time.'                                                           },
-  { icon: '🔥', title: 'Heatmap Overlays',             desc: 'Switch from paths mode to heatmap mode to see density — where players congregate, where fights cluster, which areas of the map get ignored entirely.'                                                             },
-  { icon: '⚡', title: 'Region-scoped AI Chat',        desc: 'Draw a rectangle on the map. Ask "why do players avoid this corridor?" — the AI queries events scoped to that area and returns a specific level design fix.'                                                      },
-  { icon: '★',  title: 'Algorithmic Annotations',      desc: 'Dead zones, choke points, and storm clusters auto-detected and rendered as pulsing rings. One click → AI diagnosis sent directly to chat.'                                                                        },
-  { icon: '🧠', title: 'Persistent AI Memory',         desc: 'Every significant finding is saved and recalled automatically in future sessions. The AI builds context over time, scoped to you and your map.'                                                                   },
-  { icon: '📊', title: 'Custom KPI Formulas',          desc: 'Define your own metrics: Kill / (Kill + Killed), storm deaths per match. Stored per designer, evaluated live against selected matches.'                                                                           },
+  { icon: '🗺', title: 'Player Journeys on the Map', desc: 'Every movement, kill, death, loot pickup, and storm death rendered on the actual minimap. Click any spawn point to open a player journey panel — stats, event log, and a dedicated timeline for that entity.' },
+  { icon: '👤', title: 'Humans vs Bots — Visually',  desc: 'Human paths are solid coloured lines. Bot paths are white dashed lines. Bots are numbered per match (Bot #1, #2…). Click any spawn to isolate and watch their journey independently.' },
+  { icon: '🗂', title: 'Filters & Heatmaps',         desc: 'Switch maps, filter by date and match, toggle event types, overlay all 199+ matches simultaneously, or flip to heatmap mode to see where players actually spend time.' },
+  { icon: '⏱', title: 'Timeline & Playback',         desc: 'Scrub through any match frame by frame. Play, pause, seek, set speed (0.5×–10×). Switch to entity mode to watch a single player or bot journey on the same timeline.' },
+  { icon: '⚡', title: 'AI Chat & Insights',          desc: 'Draw a region on the map and ask the AI a question scoped to that area. Auto-detected choke points, dead zones, and storm clusters appear as pulsing rings — one click sends them to AI for diagnosis.' },
+  { icon: '📊', title: 'Custom KPI Formulas',         desc: 'Define your own metrics: Kill / (Kill + Killed), storm deaths per match, any formula you need. Stored per designer, evaluated live against any selection of matches.' },
 ]
 
 export default function Landing() {
