@@ -4,12 +4,16 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase'
 
 const FEATURES = [
-  { icon: '◎', title: 'Interactive Map Viewer',  desc: 'Zoom, pan, scrub through time. Paths mode shows every player route. Heatmap shows density. Toggle humans, bots, or specific matches.'                        },
-  { icon: '⚡', title: 'Region-scoped AI Chat',   desc: 'Draw a rectangle on the map. Ask "why do players avoid this corridor?" — the AI queries events and returns a specific level design fix.'                   },
-  { icon: '★',  title: 'Algorithmic Annotations', desc: 'Dead zones, choke points, and storm clusters auto-detected and rendered as pulsing rings. One click → AI diagnosis.'                                        },
-  { icon: '🧠', title: 'Persistent AI Memory',    desc: 'Every significant finding is saved and recalled automatically in future sessions. The AI builds context over time, scoped to you and your map.'             },
-  { icon: '📊', title: 'Custom KPI Formulas',     desc: 'Define your own metrics: Kill / (Kill + Killed), storm deaths per match. Stored per designer, evaluated live against selected matches.'                    },
-  { icon: '📥', title: 'CSV Upload',              desc: 'Drop in raw event CSVs. Server converts world coordinates to pixel coords and loads them into the database instantly.'                                      },
+  { icon: '🗺', title: 'Player Journeys on the Map',   desc: 'Every movement, kill, death, loot pickup, and storm death rendered directly on the actual minimap. World coordinates from the game engine are mapped precisely to pixel positions on the image.'                },
+  { icon: '👤', title: 'Humans vs Bots — Visually',    desc: 'Human players and bots are distinguished by colour and shape across every event type. Toggle each on or off independently. Bots detected from the raw data format — no manual tagging needed.'                  },
+  { icon: '🎯', title: 'Event Type Markers',           desc: 'Kills, deaths, bot kills, storm deaths, and loot pickups each have a distinct colour and marker shape. Filter to any combination — see only what you need.'                                                       },
+  { icon: '🗂', title: 'Filter by Map, Date & Match',  desc: 'Switch between AmbroseValley, GrandRift, and Lockdown. Filter by date label (February 10–14). Select one match or overlay all 199+ simultaneously.'                                                              },
+  { icon: '⏱', title: 'Timeline & Match Playback',    desc: 'Scrub through any match frame by frame. Play, pause, seek, set speed (0.5×, 1×, 2×, 4×, 10×). Watch the entire match unfold on the map in real time.'                                                           },
+  { icon: '🔥', title: 'Heatmap Overlays',             desc: 'Switch from paths mode to heatmap mode to see density — where players congregate, where fights cluster, which areas of the map get ignored entirely.'                                                             },
+  { icon: '⚡', title: 'Region-scoped AI Chat',        desc: 'Draw a rectangle on the map. Ask "why do players avoid this corridor?" — the AI queries events scoped to that area and returns a specific level design fix.'                                                      },
+  { icon: '★',  title: 'Algorithmic Annotations',      desc: 'Dead zones, choke points, and storm clusters auto-detected and rendered as pulsing rings. One click → AI diagnosis sent directly to chat.'                                                                        },
+  { icon: '🧠', title: 'Persistent AI Memory',         desc: 'Every significant finding is saved and recalled automatically in future sessions. The AI builds context over time, scoped to you and your map.'                                                                   },
+  { icon: '📊', title: 'Custom KPI Formulas',          desc: 'Define your own metrics: Kill / (Kill + Killed), storm deaths per match. Stored per designer, evaluated live against selected matches.'                                                                           },
 ]
 
 export default function Landing() {
