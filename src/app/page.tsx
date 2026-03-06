@@ -222,16 +222,16 @@ export default function Landing() {
       <section id="tech" className="px-6 py-20 max-w-5xl mx-auto">
         <SectionLabel>Tech Stack</SectionLabel>
         <h2 className="text-4xl font-bold mb-12 leading-tight">
-          Built for zero cost,<br />production-grade output.
+          What&apos;s powering it<br />under the hood.
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
-            { layer: 'Frontend',   stack: 'Next.js (App Router) · React 19 · TypeScript · Tailwind CSS v4', note: 'SSE streaming, agentic tool-call loop, canvas-based map renderer' },
-            { layer: 'Database',   stack: 'Supabase — PostgreSQL + pgvector',                               note: 'events · matches · designer_memory with 384-dim embeddings. Free tier.' },
-            { layer: 'AI Model',   stack: 'Claude Haiku via OpenRouter (OpenAI-compatible SDK)',             note: '4 general tools: query_events, aggregate_events, get_match_summary, compare_date_labels' },
-            { layer: 'Embeddings', stack: 'Transformers.js — Xenova/all-MiniLM-L6-v2 (384-dim)',            note: 'Runs locally on the server. Zero API cost. Cosine similarity search in Node.js.' },
-            { layer: 'Auth',       stack: 'Supabase Auth — Google OAuth',                                   note: 'designer_id = Supabase auth.users.id (separate from user_id = player UUID in events)' },
-            { layer: 'Pipeline',   stack: 'Python — pandas, supabase-py',                                   note: 'event_decoder → coordinate_utils → bot_detector → ingest → Supabase' },
+            { layer: 'Frontend',   stack: 'Next.js · React 19 · TypeScript · Tailwind CSS', note: 'The web app — real-time map rendering, AI chat panel, interactive controls.' },
+            { layer: 'Database',   stack: 'Supabase (free tier)',                           note: 'Stores all player events, match records, and the AI\'s memory of past findings.' },
+            { layer: 'AI Model',   stack: 'Claude Haiku (Anthropic)',                       note: 'Powers the chat analyst. Reads match data and returns a finding, diagnosis, and fix.' },
+            { layer: 'AI Memory',  stack: 'Local semantic search model',                    note: 'Runs on the server at zero cost. Saves and recalls past insights per designer, per map.' },
+            { layer: 'Auth',       stack: 'Google Sign-In via Supabase',                    note: 'Each designer has their own profile, saved KPIs, and AI memory — all private.' },
+            { layer: 'Pipeline',   stack: 'Python scripts',                                 note: 'Processes raw game event files and loads them into the database ready for analysis.' },
           ].map(t => (
             <div key={t.layer} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
               <p className="text-blue-600 text-xs font-bold uppercase tracking-widest mb-2">{t.layer}</p>
@@ -245,35 +245,34 @@ export default function Landing() {
       {/* ── Architecture ───────────────────────────────────────────────── */}
       <section id="architecture" className="bg-white px-6 py-20">
         <div className="max-w-5xl mx-auto">
-          <SectionLabel>Architecture</SectionLabel>
+          <SectionLabel>How It Works</SectionLabel>
           <h2 className="text-4xl font-bold mb-5 leading-tight">
-            How data flows from<br />CSV to insight.
+            From a playtest session<br />to a design decision.
           </h2>
           <p className="text-gray-500 text-lg leading-relaxed mb-14 max-w-2xl">
-            Zero paid API calls for infrastructure. Embeddings are local. Aggregation is in-database.
-            The AI only sees structured query results, never raw SQL.
+            Six steps — from raw game data to an AI telling you exactly what to change on your map.
           </p>
 
           {/* Flowchart */}
           <div className="overflow-x-auto pb-4">
             <div className="flex items-start gap-0 min-w-[700px]">
               {[
-                { label: 'Raw CSV',        color: 'bg-gray-100 border-gray-200',       dot: 'bg-gray-400',   lines: ['match_id, user_id', 'event_type, x/z', 'timestamp, is_bot'] },
-                { label: 'Python Pipeline', color: 'bg-blue-50 border-blue-100',        dot: 'bg-blue-400',   lines: ['event_decoder.py', 'bot_detector.py', 'coordinate_utils.py', 'ingest.py'] },
-                { label: 'Supabase',        color: 'bg-green-50 border-green-100',      dot: 'bg-green-500',  lines: ['events table', 'matches table', 'designer_memory', '(pgvector)'] },
-                { label: 'Next.js API',     color: 'bg-purple-50 border-purple-100',    dot: 'bg-purple-500', lines: ['4 AI tools', 'region filters', 'spawn detection', 'aggregation'] },
-                { label: 'Claude Haiku',    color: 'bg-orange-50 border-orange-100',    dot: 'bg-orange-400', lines: ['tool-call loop', 'FINDING', 'DIAGNOSIS', 'FIX'] },
-                { label: 'Dashboard',       color: 'bg-gray-900 border-gray-800 text-white', dot: 'bg-white', lines: ['SSE stream', 'map overlay', 'AI memory', 'KPI panel'] },
+                { label: 'Game Events',     color: 'bg-gray-100 border-gray-200',            dot: 'bg-gray-400',   lines: ['Every kill', 'Every death', 'Every movement', 'Every item pickup'] },
+                { label: 'Clean & Process', color: 'bg-blue-50 border-blue-100',              dot: 'bg-blue-400',   lines: ['Bots separated', 'from real players', 'Positions mapped', 'to the visual map'] },
+                { label: 'Store',           color: 'bg-green-50 border-green-100',            dot: 'bg-green-500',  lines: ['All events saved', 'per match', 'AI memory stored', 'per designer'] },
+                { label: 'Smart Queries',   color: 'bg-purple-50 border-purple-100',          dot: 'bg-purple-500', lines: ['Filter by area', 'Filter by match', 'Filter by event', 'Instant results'] },
+                { label: 'AI Analysis',     color: 'bg-orange-50 border-orange-100',          dot: 'bg-orange-400', lines: ['Reads the data', 'Forms a diagnosis', 'Suggests a fix', 'In plain English'] },
+                { label: 'You See This',    color: 'bg-gray-900 border-gray-800',             dot: 'bg-white',      lines: ['Map overlays', 'AI chat panel', 'Past observations', 'Custom metrics'] },
               ].map((node, i, arr) => (
                 <div key={node.label} className="flex items-center flex-1">
                   <div className={`flex-1 rounded-2xl border p-4 ${node.color}`}>
                     <div className="flex items-center gap-2 mb-3">
                       <div className={`w-2 h-2 rounded-full shrink-0 ${node.dot}`} />
-                      <p className={`font-bold text-xs uppercase tracking-wider ${node.color.includes('gray-900') ? 'text-white' : 'text-gray-700'}`}>{node.label}</p>
+                      <p className={`font-bold text-xs uppercase tracking-wider ${node.label === 'You See This' ? 'text-white' : 'text-gray-700'}`}>{node.label}</p>
                     </div>
                     <ul className="space-y-1">
                       {node.lines.map(l => (
-                        <li key={l} className={`text-[11px] font-mono ${node.color.includes('gray-900') ? 'text-gray-400' : 'text-gray-500'}`}>{l}</li>
+                        <li key={l} className={`text-[11px] ${node.label === 'You See This' ? 'text-gray-400' : 'text-gray-500'}`}>{l}</li>
                       ))}
                     </ul>
                   </div>
@@ -288,12 +287,12 @@ export default function Landing() {
             </div>
           </div>
 
-          {/* Key decisions below flowchart */}
+          {/* Key design decisions — plain language */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10">
             {[
-              { title: 'Zero row-transfer aggregation', desc: 'COUNT(*) runs inside Postgres via RPC. No raw rows transferred to Node.js. Bypasses the free-tier 1000-row PostgREST limit.' },
-              { title: 'Local embeddings', desc: 'Transformers.js runs all-MiniLM-L6-v2 on the server. No embedding API calls. 384-dim vectors stored in pgvector for semantic memory search.' },
-              { title: 'Per-match spawn detection', desc: 'Spawns = first Position event per (match_id, user_id). Batched 20 matches at a time in parallel. Fixes the global-fetch ordering bug at scale.' },
+              { title: 'Handles hundreds of matches', desc: 'The system was built to analyse 199+ matches at once without slowing down. All counting happens where the data lives — results come back instantly.' },
+              { title: 'AI that remembers you',        desc: 'Every insight the AI surfaces is saved automatically. Next session, it recalls what it found before — no repeating yourself, no starting from scratch.' },
+              { title: 'Built at zero infrastructure cost', desc: 'The AI memory search runs entirely on the server using a local model — no paid APIs for it. The whole product runs on free-tier services.' },
             ].map(d => (
               <div key={d.title} className="bg-[#F4F4F0] rounded-2xl p-5">
                 <p className="font-semibold text-sm mb-2">{d.title}</p>
