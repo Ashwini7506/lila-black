@@ -303,6 +303,114 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── Why this architecture ──────────────────────────────────────── */}
+      <section className="px-6 py-20 max-w-5xl mx-auto">
+        <SectionLabel>Why This Architecture</SectionLabel>
+        <h2 className="text-4xl font-bold mb-5 leading-tight">
+          Built to scale, not just<br />to finish the assignment.
+        </h2>
+        <p className="text-gray-500 text-lg leading-relaxed mb-12 max-w-2xl">
+          Every technical decision was made with one question in mind: what happens when a studio needs this at scale, across multiple maps, teams, and game titles?
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {[
+            {
+              title: 'A real database, not a static file',
+              desc: 'Most quick prototypes read from a CSV or JSON file. LILA BLACK uses a proper relational database with a structured data pipeline. New match data can be added at any time without touching the codebase — just run the pipeline.',
+            },
+            {
+              title: 'AI memory that actually learns from you',
+              desc: 'The AI has a RAG (Retrieval Augmented Generation) architecture built in. Every finding it surfaces is saved as a searchable memory, scoped to you and your map. The longer you use it, the more context it carries into future sessions.',
+            },
+            {
+              title: 'Designed for personal training',
+              desc: 'Because memory is stored per designer, each person\'s AI gradually reflects their own way of thinking about level design. You can also add manual notes to its memory. In the future this becomes the foundation for a personalised AI co-designer.',
+            },
+            {
+              title: 'A path to MCP integration',
+              desc: 'The vector database layer is the foundation for an MCP (Model Context Protocol) server — a direct bridge between this tool and the game engine. A level designer or developer could get AI analysis injected into their editor in real time, without opening a browser.',
+            },
+          ].map(d => (
+            <div key={d.title} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+              <p className="font-semibold text-sm mb-2">{d.title}</p>
+              <p className="text-gray-500 text-sm leading-relaxed">{d.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Trade-offs & What's Next ────────────────────────────────────── */}
+      <section className="bg-white px-6 py-20">
+        <div className="max-w-5xl mx-auto">
+          <SectionLabel>Trade-offs & What&apos;s Next</SectionLabel>
+          <h2 className="text-4xl font-bold mb-5 leading-tight">
+            Honest about what<br />I had to compromise on.
+          </h2>
+          <p className="text-gray-500 text-lg leading-relaxed mb-12 max-w-2xl">
+            Every build under a deadline involves choices. Here is what I traded off, why, and what I would fix first with more time.
+          </p>
+
+          {/* Trade-offs */}
+          <div className="space-y-4 mb-14">
+            {[
+              {
+                label: 'Trade-off 1',
+                title: 'A less powerful AI model to control cost',
+                desc: 'The tool currently uses Claude Haiku — Anthropic\'s fastest and cheapest model. A more capable model (Claude Sonnet) would produce significantly better diagnoses and multi-step reasoning, but at 5–10× the API cost per query. To keep this viable for a real studio at scale, the upgrade needs to come with smarter caching and query batching first.',
+                color: 'border-l-blue-400',
+              },
+              {
+                label: 'Trade-off 2',
+                title: 'Split between algorithm and AI to keep responses fast',
+                desc: 'Dead zones, choke points, and storm clusters are detected by fixed algorithms, not by the AI. This is intentional — the AI answering these from scratch on every load would take 30–60 seconds and cost significantly more. The algorithm flags the pattern; the AI only explains it when you ask. This keeps the tool feeling instant.',
+                color: 'border-l-orange-400',
+              },
+              {
+                label: 'Trade-off 3',
+                title: 'Free database tier limits how much data the AI can see at once',
+                desc: 'Supabase\'s free tier caps how many rows can be returned in a single database call. The AI could in theory ask for all 89,000+ events and reason over everything — but that would take 4–5 minutes and cost a lot per query. The current design works around this by giving the AI smarter, aggregated summaries instead of raw rows. A paid tier or a self-hosted database removes this constraint entirely.',
+                color: 'border-l-red-400',
+              },
+            ].map(t => (
+              <div key={t.title} className={`bg-[#F4F4F0] rounded-2xl p-6 border-l-4 ${t.color}`}>
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">{t.label}</p>
+                <p className="font-semibold text-sm mb-2">{t.title}</p>
+                <p className="text-gray-500 text-sm leading-relaxed">{t.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* What's next */}
+          <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-4">With More Time</p>
+          <h3 className="text-2xl font-bold mb-8">The full vision: an AI co-designer inside your game engine.</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              {
+                step: '01',
+                title: 'Named Zones',
+                desc: 'Let designers label areas on their map — "North Warehouse", "Bridge", "Dead End Alley". All AI responses and annotations reference these names instead of coordinates. Without this, locations are meaningless to a non-technical designer.',
+              },
+              {
+                step: '02',
+                title: 'Design Intent Layer',
+                desc: 'Designer marks a zone and declares what it was meant to do — "flanking route", "high-traffic loot area", "sniper nest". The AI compares actual player behaviour against the stated intent and surfaces the gap. This is the core value of a real playtest tool.',
+              },
+              {
+                step: '03',
+                title: 'MCP Server in the Game Engine',
+                desc: 'Build a Model Context Protocol server over the existing vector memory layer. This creates a direct bridge between LILA BLACK and the level editor — AI analysis, past playtest findings, and design suggestions delivered inside the tool the designer already has open.',
+              },
+            ].map(n => (
+              <div key={n.step} className="bg-gray-900 text-white rounded-2xl p-6">
+                <p className="text-gray-600 font-bold text-xl mb-3">{n.step}</p>
+                <p className="font-semibold text-sm mb-2">{n.title}</p>
+                <p className="text-gray-400 text-xs leading-relaxed">{n.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Final CTA ──────────────────────────────────────────────────── */}
       <section className="bg-gray-900 text-white px-6 py-20 text-center">
         <div className="max-w-2xl mx-auto">
