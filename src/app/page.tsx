@@ -37,10 +37,6 @@ export default function Landing() {
     })
   }
 
-  const videoSrc = VIDEO_ID === 'YOUR_VIDEO_ID'
-    ? null
-    : `https://www.youtube.com/embed/${VIDEO_ID}?start=${FEATURES[activeFeature].ts}&autoplay=1`
-
   if (checking) {
     return (
       <div className="min-h-screen bg-[#F4F4F0] flex items-center justify-center">
@@ -48,6 +44,11 @@ export default function Landing() {
       </div>
     )
   }
+
+  const hasVideo = VIDEO_ID !== 'YOUR_VIDEO_ID'
+  const videoSrc = hasVideo
+    ? `https://www.youtube.com/embed/${VIDEO_ID}?start=${FEATURES[activeFeature].ts}&autoplay=1`
+    : null
 
   return (
     <div className="bg-[#F4F4F0] text-gray-900 font-sans">
