@@ -110,9 +110,8 @@ export default function Landing() {
         <div className="relative rounded-2xl overflow-hidden border border-gray-200 shadow-xl bg-white aspect-video">
           <iframe
             className="absolute inset-0 w-full h-full"
-            src="https://www.youtube.com/embed/TE8K3wot-fM"
+            src="https://www.loom.com/embed/7ea59800f35040e68125d460d2209911"
             title="LILA BLACK Project Walkthrough"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />
         </div>
@@ -183,11 +182,9 @@ export default function Landing() {
             {/* Right — video player */}
             <div className="flex-1 rounded-2xl overflow-hidden border border-white/10 bg-white/5 aspect-video relative">
               <iframe
-                key={activeFeature}
                 className="absolute inset-0 w-full h-full"
-                src={`https://www.youtube.com/embed/TE8K3wot-fM`}
+                src="https://www.loom.com/embed/7ea59800f35040e68125d460d2209911"
                 title={FEATURES[activeFeature].title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
             </div>
