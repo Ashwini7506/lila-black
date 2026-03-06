@@ -5,7 +5,7 @@ import { supabase } from '@/utils/supabase'
 
 const FEATURES = [
   { icon: '🗺', title: 'Player Journeys on the Map',   desc: 'Every movement, kill, death, loot pickup, and storm death rendered directly on the actual minimap. World coordinates from the game engine are mapped precisely to pixel positions on the image.'                },
-  { icon: '👤', title: 'Humans vs Bots — Visually',    desc: 'Human players and bots are distinguished by colour and shape across every event type. Toggle each on or off independently. Bots detected from the raw data format — no manual tagging needed.'                  },
+  { icon: '👤', title: 'Humans vs Bots — Visually',    desc: 'Bot kills and bot deaths are rendered in distinct colours, separate from human combat events. Toggle human events and bot events on or off independently. Bot detection is automatic from the raw data — no manual tagging.'  },
   { icon: '🎯', title: 'Event Type Markers',           desc: 'Kills, deaths, bot kills, storm deaths, and loot pickups each have a distinct colour and marker shape. Filter to any combination — see only what you need.'                                                       },
   { icon: '🗂', title: 'Filter by Map, Date & Match',  desc: 'Switch between AmbroseValley, GrandRift, and Lockdown. Filter by date label (February 10–14). Select one match or overlay all 199+ simultaneously.'                                                              },
   { icon: '⏱', title: 'Timeline & Match Playback',    desc: 'Scrub through any match frame by frame. Play, pause, seek, set speed (0.5×, 1×, 2×, 4×, 10×). Watch the entire match unfold on the map in real time.'                                                           },
