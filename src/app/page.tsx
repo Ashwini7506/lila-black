@@ -3,17 +3,13 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase'
 
-// ── Replace with your YouTube video ID after uploading ──────────────────────
-const VIDEO_ID = 'TE8K3wot-fM'
-
-// ── Feature list with timestamps (seconds) — update after recording ─────────
 const FEATURES = [
-  { icon: '◎', title: 'Interactive Map Viewer',     desc: 'Zoom, pan, scrub through time. Paths mode shows every player route. Heatmap shows density. Toggle humans, bots, or specific matches.', ts: 0   },
-  { icon: '⚡', title: 'Region-scoped AI Chat',      desc: 'Draw a rectangle on the map. Ask "why do players avoid this corridor?" — the AI queries events and returns a specific level design fix.', ts: 30  },
-  { icon: '★',  title: 'Algorithmic Annotations',    desc: 'Dead zones, choke points, and storm clusters auto-detected and rendered as pulsing rings. One click → AI diagnosis.', ts: 60  },
-  { icon: '🧠', title: 'Persistent AI Memory',       desc: 'Every significant finding is embedded locally (Transformers.js) and stored per designer per map. The AI recalls past observations automatically.', ts: 90  },
-  { icon: '📊', title: 'Custom KPI Formulas',        desc: 'Define your own metrics: Kill / (Kill + Killed), storm deaths per match. Stored per designer, evaluated live against selected matches.', ts: 120 },
-  { icon: '📥', title: 'CSV Upload Pipeline',        desc: 'Drop in raw event CSVs. Server converts world coordinates to pixel coords via MAP_CONFIGS and batch-upserts to Supabase.', ts: 150 },
+  { icon: '◎', title: 'Interactive Map Viewer',  desc: 'Zoom, pan, scrub through time. Paths mode shows every player route. Heatmap shows density. Toggle humans, bots, or specific matches.'                        },
+  { icon: '⚡', title: 'Region-scoped AI Chat',   desc: 'Draw a rectangle on the map. Ask "why do players avoid this corridor?" — the AI queries events and returns a specific level design fix.'                   },
+  { icon: '★',  title: 'Algorithmic Annotations', desc: 'Dead zones, choke points, and storm clusters auto-detected and rendered as pulsing rings. One click → AI diagnosis.'                                        },
+  { icon: '🧠', title: 'Persistent AI Memory',    desc: 'Every significant finding is saved and recalled automatically in future sessions. The AI builds context over time, scoped to you and your map.'             },
+  { icon: '📊', title: 'Custom KPI Formulas',     desc: 'Define your own metrics: Kill / (Kill + Killed), storm deaths per match. Stored per designer, evaluated live against selected matches.'                    },
+  { icon: '📥', title: 'CSV Upload',              desc: 'Drop in raw event CSVs. Server converts world coordinates to pixel coords and loads them into the database instantly.'                                      },
 ]
 
 export default function Landing() {
@@ -45,10 +41,6 @@ export default function Landing() {
     )
   }
 
-  const hasVideo = VIDEO_ID !== 'YOUR_VIDEO_ID'
-  const videoSrc = hasVideo
-    ? `https://www.youtube.com/embed/${VIDEO_ID}?start=${FEATURES[activeFeature].ts}&autoplay=1`
-    : null
 
   return (
     <div className="bg-[#F4F4F0] text-gray-900 font-sans">
@@ -116,21 +108,13 @@ export default function Landing() {
       {/* ── Hero video ─────────────────────────────────────────────────── */}
       <section className="px-6 pb-20 pt-8 max-w-5xl mx-auto">
         <div className="relative rounded-2xl overflow-hidden border border-gray-200 shadow-xl bg-white aspect-video">
-          {!videoSrc ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-50">
-              <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-2xl">▶</div>
-              <p className="text-gray-400 text-sm">Project walkthrough — video coming soon</p>
-            </div>
-          ) : (
-            <iframe
-              key={videoSrc}
-              className="absolute inset-0 w-full h-full"
-              src={videoSrc}
-              title="LILA BLACK Project Walkthrough"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          )}
+          <iframe
+            className="absolute inset-0 w-full h-full"
+            src="https://www.youtube.com/embed/TE8K3wot-fM"
+            title="LILA BLACK Project Walkthrough"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
         </div>
       </section>
 
@@ -198,22 +182,14 @@ export default function Landing() {
 
             {/* Right — video player */}
             <div className="flex-1 rounded-2xl overflow-hidden border border-white/10 bg-white/5 aspect-video relative">
-              {!videoSrc ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-xl">▶</div>
-                  <p className="text-gray-500 text-sm">{FEATURES[activeFeature].title}</p>
-                  <p className="text-gray-600 text-xs">Video coming soon</p>
-                </div>
-              ) : (
-                <iframe
-                  key={`${VIDEO_ID}-${activeFeature}`}
-                  className="absolute inset-0 w-full h-full"
-                  src={`https://www.youtube.com/embed/${VIDEO_ID}?start=${FEATURES[activeFeature].ts}&autoplay=1`}
-                  title={FEATURES[activeFeature].title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              )}
+              <iframe
+                key={activeFeature}
+                className="absolute inset-0 w-full h-full"
+                src={`https://www.youtube.com/embed/TE8K3wot-fM`}
+                title={FEATURES[activeFeature].title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
             </div>
           </div>
         </div>
