@@ -52,7 +52,7 @@ export default function Landing() {
         <button
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="flex items-center gap-2 bg-gray-900 text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-gray-700 transition-all disabled:opacity-50"
+          className="flex items-center gap-2 bg-purple-600 text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-purple-700 transition-all disabled:opacity-50"
         >
           <GoogleIcon />
           {loading ? 'Redirecting…' : 'Sign in'}
@@ -60,84 +60,31 @@ export default function Landing() {
       </nav>
 
       {/* ── Hero ────────────────────────────────────────────────────── */}
-      <section className="relative flex flex-col items-center text-center px-6 pt-16 pb-8 overflow-hidden">
-
-        {/* Decorative curved lines + floating icons */}
-        <div className="absolute inset-0 pointer-events-none select-none" aria-hidden>
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" fill="none">
-            {/* Left arc */}
-            <path d="M 80 300 C 200 200, 400 280, 600 300" stroke="#D1D1C8" strokeWidth="1.5" />
-            {/* Right arc */}
-            <path d="M 1120 300 C 1000 200, 800 280, 600 300" stroke="#D1D1C8" strokeWidth="1.5" />
-            {/* Bottom left arc */}
-            <path d="M 160 480 C 300 420, 450 380, 600 400" stroke="#D1D1C8" strokeWidth="1.5" />
-            {/* Bottom right arc */}
-            <path d="M 1040 480 C 900 420, 750 380, 600 400" stroke="#D1D1C8" strokeWidth="1.5" />
-            {/* Connector dots */}
-            <circle cx="80"  cy="300" r="5" fill="#D1D1C8" />
-            <circle cx="1120" cy="300" r="5" fill="#D1D1C8" />
-            <circle cx="160"  cy="480" r="5" fill="#D1D1C8" />
-            <circle cx="1040" cy="480" r="5" fill="#D1D1C8" />
-            <circle cx="600"  cy="300" r="5" fill="#D1D1C8" />
-          </svg>
-
-          {/* Floating icon cards */}
-          <div className="absolute left-[6%] top-[28%] bg-white rounded-2xl shadow-sm border border-gray-100 p-3 flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-base">🗺</div>
-            <div className="text-left">
-              <p className="text-[10px] font-semibold text-gray-700">Heatmap</p>
-              <p className="text-[9px] text-gray-400">199 matches</p>
-            </div>
-          </div>
-
-          <div className="absolute right-[6%] top-[28%] bg-white rounded-2xl shadow-sm border border-gray-100 p-3 flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-base">🎯</div>
-            <div className="text-left">
-              <p className="text-[10px] font-semibold text-gray-700">Kill Zones</p>
-              <p className="text-[9px] text-gray-400">Choke points</p>
-            </div>
-          </div>
-
-          <div className="absolute left-[10%] top-[62%] bg-white rounded-2xl shadow-sm border border-gray-100 p-3 flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-base">🤖</div>
-            <div className="text-left">
-              <p className="text-[10px] font-semibold text-gray-700">AI Analyst</p>
-              <p className="text-[9px] text-gray-400">Finding + Fix</p>
-            </div>
-          </div>
-
-          <div className="absolute right-[10%] top-[62%] bg-white rounded-2xl shadow-sm border border-gray-100 p-3 flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-base">⚡</div>
-            <div className="text-left">
-              <p className="text-[10px] font-semibold text-gray-700">Spawn Data</p>
-              <p className="text-[9px] text-gray-400">Per match</p>
-            </div>
-          </div>
-        </div>
+      <section className="flex flex-col items-center text-center px-6 pt-16 pb-8">
 
         {/* Badge */}
-        <div className="relative inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-500 text-[11px] font-medium tracking-widest uppercase px-3 py-1.5 rounded-full mb-8">
+        <div className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-500 text-[11px] font-medium tracking-widest uppercase px-3 py-1.5 rounded-full mb-8">
           <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
           APM Written Test — Lila Games
         </div>
 
         {/* H1 */}
-        <h1 className="relative text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5 max-w-3xl">
+        <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-5 max-w-3xl">
           See Your Map Through<br />
           <span className="text-blue-600">Your Players&apos; Eyes</span>
         </h1>
 
-        <p className="relative text-gray-500 text-lg leading-relaxed mb-10 max-w-xl">
+        <p className="text-gray-500 text-lg leading-relaxed mb-10 max-w-xl">
           LILA BLACK is an AI-powered game analytics visualiser for level designers —
           turning raw telemetry into spatial insight, and spatial insight into design decisions.
         </p>
 
         {/* CTA row */}
-        <div className="relative flex items-center gap-3 flex-wrap justify-center">
+        <div className="flex items-center gap-3 flex-wrap justify-center">
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="flex items-center gap-2.5 bg-gray-900 text-white font-semibold text-sm px-7 py-3.5 rounded-full hover:bg-gray-700 transition-all shadow-md disabled:opacity-50"
+            className="flex items-center gap-2.5 bg-purple-600 text-white font-semibold text-sm px-7 py-3.5 rounded-full hover:bg-purple-700 transition-all shadow-md disabled:opacity-50"
           >
             <GoogleIcon />
             {loading ? 'Redirecting…' : 'Open Dashboard'}
@@ -315,7 +262,7 @@ export default function Landing() {
             <button
               onClick={handleGoogleSignIn}
               disabled={loading}
-              className="flex items-center gap-2.5 bg-white text-gray-900 font-semibold text-sm px-7 py-3.5 rounded-full hover:bg-gray-100 transition-all disabled:opacity-50"
+              className="flex items-center gap-2.5 bg-purple-600 text-white font-semibold text-sm px-7 py-3.5 rounded-full hover:bg-purple-700 transition-all disabled:opacity-50"
             >
               <GoogleIcon dark />
               {loading ? 'Redirecting…' : 'Open Dashboard'}
