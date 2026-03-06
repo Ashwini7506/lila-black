@@ -6,14 +6,15 @@ import { supabase } from '@/utils/supabase'
 // ── Replace with your YouTube video ID after uploading ──────────────────────
 const VIDEO_ID = 'YOUR_VIDEO_ID'
 
-// ── Feature list with timestamps (seconds) — update after recording ─────────
+// ── Feature list — add screenshot filenames to /public/screenshots/ ─────────
+// Screenshots to take: map.png, ai-chat.png, annotations.png, memory.png, kpi.png, upload.png
 const FEATURES = [
-  { icon: '◎', title: 'Interactive Map Viewer',     desc: 'Zoom, pan, scrub through time. Paths mode shows every player route. Heatmap shows density. Toggle humans, bots, or specific matches.', ts: 0   },
-  { icon: '⚡', title: 'Region-scoped AI Chat',      desc: 'Draw a rectangle on the map. Ask "why do players avoid this corridor?" — the AI queries events and returns a specific level design fix.', ts: 30  },
-  { icon: '★',  title: 'Algorithmic Annotations',    desc: 'Dead zones, choke points, and storm clusters auto-detected and rendered as pulsing rings. One click → AI diagnosis.', ts: 60  },
-  { icon: '🧠', title: 'Persistent AI Memory',       desc: 'Every significant finding is embedded locally (Transformers.js) and stored per designer per map. The AI recalls past observations automatically.', ts: 90  },
-  { icon: '📊', title: 'Custom KPI Formulas',        desc: 'Define your own metrics: Kill / (Kill + Killed), storm deaths per match. Stored per designer, evaluated live against selected matches.', ts: 120 },
-  { icon: '📥', title: 'CSV Upload Pipeline',        desc: 'Drop in raw event CSVs. Server converts world coordinates to pixel coords via MAP_CONFIGS and batch-upserts to Supabase.', ts: 150 },
+  { icon: '◎', title: 'Interactive Map Viewer',  desc: 'Zoom, pan, scrub through time. Paths mode shows every player route. Heatmap shows density. Toggle humans, bots, or specific matches.', ts: 0,   img: '/screenshots/map.png'         },
+  { icon: '⚡', title: 'Region-scoped AI Chat',   desc: 'Draw a rectangle on the map. Ask "why do players avoid this corridor?" — the AI queries events and returns a specific level design fix.', ts: 30,  img: '/screenshots/ai-chat.png'     },
+  { icon: '★',  title: 'AI Annotations',          desc: 'Dead zones, choke points, and storm clusters auto-detected and rendered as pulsing rings on the map. One click → AI diagnosis.', ts: 60,  img: '/screenshots/annotations.png' },
+  { icon: '🧠', title: 'Persistent AI Memory',    desc: 'Every significant finding is saved and recalled automatically in future sessions. The AI builds context over time, scoped to you and your map.', ts: 90,  img: '/screenshots/memory.png'      },
+  { icon: '📊', title: 'Custom KPI Formulas',     desc: 'Define your own metrics: Kill / (Kill + Killed), storm deaths per match. Stored per designer, evaluated live against selected matches.', ts: 120, img: '/screenshots/kpi.png'         },
+  { icon: '📥', title: 'CSV Upload',              desc: 'Drop in raw event CSVs. Server converts world coordinates to pixel coords and loads them into the database instantly.', ts: 150, img: '/screenshots/upload.png'      },
 ]
 
 export default function Landing() {
@@ -112,24 +113,24 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Hero video ─────────────────────────────────────────────────── */}
-      <section className="px-6 pb-20 pt-8 max-w-5xl mx-auto">
-        <div className="relative rounded-2xl overflow-hidden border border-gray-200 shadow-xl bg-white aspect-video">
-          {!videoSrc ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gray-50">
-              <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-2xl">▶</div>
-              <p className="text-gray-400 text-sm">Project walkthrough — video coming soon</p>
-            </div>
-          ) : (
-            <iframe
-              key={videoSrc}
-              className="absolute inset-0 w-full h-full"
-              src={videoSrc}
-              title="LILA BLACK Project Walkthrough"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          )}
+      {/* ── Hero dashboard screenshot ───────────────────────────────────── */}
+      <section className="px-6 pb-20 pt-8 max-w-6xl mx-auto">
+        <div className="relative rounded-2xl overflow-hidden border border-gray-200 shadow-2xl bg-gray-950">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/screenshots/dashboard.png"
+            alt="LILA BLACK dashboard — map viewer with player paths and AI chat"
+            className="w-full h-auto block"
+            onError={(e) => {
+              const el = e.currentTarget
+              el.style.display = 'none'
+              el.nextElementSibling?.removeAttribute('hidden')
+            }}
+          />
+          <div className="aspect-video flex flex-col items-center justify-center gap-3 bg-gray-950" hidden>
+            <div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-2xl">🗺</div>
+            <p className="text-gray-500 text-sm">Add <code className="text-blue-400 text-xs bg-gray-800 px-1.5 py-0.5 rounded">public/screenshots/dashboard.png</code></p>
+          </div>
         </div>
       </section>
 
@@ -195,15 +196,19 @@ export default function Landing() {
               ))}
             </div>
 
-            {/* Right — video player */}
-            <div className="flex-1 rounded-2xl overflow-hidden border border-white/10 bg-white/5 aspect-video relative">
-              {!videoSrc ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-xl">▶</div>
-                  <p className="text-gray-500 text-sm">{FEATURES[activeFeature].title}</p>
-                  <p className="text-gray-600 text-xs">Video coming soon</p>
-                </div>
-              ) : (
+            {/* Right — screenshot + video overlay */}
+            <div className="flex-1 rounded-2xl overflow-hidden border border-white/10 bg-gray-950 aspect-video relative">
+              {/* Screenshot (always shown as base layer) */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={FEATURES[activeFeature].img}
+                src={FEATURES[activeFeature].img}
+                alt={FEATURES[activeFeature].title}
+                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+                onError={(e) => { e.currentTarget.style.opacity = '0' }}
+              />
+              {/* Video on top when available */}
+              {videoSrc && (
                 <iframe
                   key={`${VIDEO_ID}-${activeFeature}`}
                   className="absolute inset-0 w-full h-full"
@@ -213,6 +218,10 @@ export default function Landing() {
                   allowFullScreen
                 />
               )}
+              {/* Fallback label when no screenshot yet */}
+              <div className="absolute bottom-3 left-3 bg-black/50 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-lg">
+                {FEATURES[activeFeature].title}
+              </div>
             </div>
           </div>
         </div>
@@ -287,8 +296,19 @@ export default function Landing() {
             </div>
           </div>
 
+          {/* AI chat screenshot */}
+          <div className="mt-10 mb-6 rounded-2xl overflow-hidden border border-gray-100 shadow-lg">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/screenshots/ai-chat.png"
+              alt="AI analyst responding with a finding, diagnosis and fix"
+              className="w-full h-auto block"
+              onError={(e) => { e.currentTarget.style.display = 'none' }}
+            />
+          </div>
+
           {/* Key design decisions — plain language */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             {[
               { title: 'Handles hundreds of matches', desc: 'The system was built to analyse 199+ matches at once without slowing down. All counting happens where the data lives — results come back instantly.' },
               { title: 'AI that remembers you',        desc: 'Every insight the AI surfaces is saved automatically. Next session, it recalls what it found before — no repeating yourself, no starting from scratch.' },
