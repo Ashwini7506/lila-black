@@ -19,6 +19,7 @@ import AIAssistant from '@/components/AIAssistant'
 import CSVUpload from '@/components/CSVUpload'
 import KPIBuilder from '@/components/KPIBuilder'
 import MemoryPanel from '@/components/MemoryPanel'
+import PlayerJourney from '@/components/PlayerJourney'
 import { supabase } from '@/utils/supabase'
 import { useAIAnnotations } from '@/hooks/useAIAnnotations'
 import { AIAnnotation } from '@/types'
@@ -73,12 +74,16 @@ export default function Dashboard() {
   const [showMemoryPanel, setShowMemoryPanel] = useState(false)
 
   const [highlightedMatchId, setHighlightedMatchId] = useState<string | null>(null)
+  const [focusedEntity, setFocusedEntity] = useState<{ matchId: string; userId: string; isBot: boolean; label: string } | null>(null)
+  const [watchingEntityTimeline, setWatchingEntityTimeline] = useState(false)
 
   const { matches } = useMatches(mapId, dateLabel)
   const { events, loading } = useMatchData(matchIds)
-  const playbackEvents = highlightedMatchId
-    ? events.filter(e => e.match_id === highlightedMatchId)
-    : events
+  const playbackEvents = (watchingEntityTimeline && focusedEntity)
+    ? events.filter(e => e.match_id === focusedEntity.matchId && e.user_id === focusedEntity.userId)
+    : highlightedMatchId
+      ? events.filter(e => e.match_id === highlightedMatchId)
+      : events
   const playback = usePlayback(playbackEvents)
   const { insights } = useInsights(mapId)
   const { annotations, loading: annotationsLoading } = useAIAnnotations(matchIds, mapId)
@@ -93,6 +98,26 @@ export default function Dashboard() {
   const handleAnnotationAsk = (ann: AIAnnotation) => {
     setShowAI(true)
     ai.sendMessage(`This area on the map has been flagged: "${ann.label}". ${ann.description} Can you help diagnose why this is happening and suggest specific level design changes to fix it?`)
+  }
+
+  const handleEntityFocus = (matchId: string, userId: string, isBot: boolean) => {
+    if (!matchId) { setFocusedEntity(null); return }
+    // Compute bot number for label — find the match's bots sorted by first event
+    let label = isBot ? 'Bot' : 'Player'
+    if (isBot) {
+      const matchEvents = events.filter(e => e.match_id === matchId && e.is_bot && e.event_type === 'BotPosition')
+      const firstByBot: Record<string, number> = {}
+      for (const e of matchEvents) {
+        if (!(e.user_id in firstByBot) || e.ts < firstByBot[e.user_id]) firstByBot[e.user_id] = e.ts
+      }
+      const sorted = Object.entries(firstByBot).sort((a, b) => a[1] - b[1])
+      const idx = sorted.findIndex(([uid]) => uid === userId)
+      if (idx >= 0) label = `Bot #${idx + 1}`
+    }
+    const m = matches.find(m => m.match_id === matchId)
+    const matchNum = m ? `Match #${m.map_match_number}` : matchId.slice(0, 8)
+    setWatchingEntityTimeline(false)
+    setFocusedEntity({ matchId, userId, isBot, label: `${label} · ${matchNum}` })
   }
 
   const handleSignOut = async () => {
@@ -150,7 +175,9 @@ export default function Dashboard() {
             <div className="flex items-center gap-2 animate-fade-slide">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-glow-pulse" />
               {matchIds.length === 1 ? (
-                <span className="text-xs text-gray-400 font-mono">{matchIds[0].slice(0, 16)}…</span>
+                <span className="text-xs text-gray-300 font-medium">
+                  {(() => { const m = matches.find(m => m.match_id === matchIds[0]); return m ? `Match #${m.map_match_number}` : 'Match' })()}
+                </span>
               ) : (
                 <span className="text-xs font-bold text-white bg-blue-600 px-2 py-0.5 rounded-full">
                   {matchIds.length} matches
@@ -161,6 +188,14 @@ export default function Dashboard() {
             </div>
           ) : (
             <span className="text-xs text-gray-700 italic">Select a match to begin</span>
+          )}
+          {focusedEntity && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-xs font-medium animate-fade-slide"
+              style={{ borderColor: focusedEntity.isBot ? '#F9731650' : '#60A5FA50', color: focusedEntity.isBot ? '#F97316' : '#60A5FA', background: focusedEntity.isBot ? '#F9731610' : '#60A5FA10' }}>
+              <span>{focusedEntity.isBot ? '🤖' : '👤'}</span>
+              <span>{focusedEntity.label}</span>
+              <button onClick={() => setFocusedEntity(null)} className="ml-1 opacity-60 hover:opacity-100 text-[10px]">✕</button>
+            </div>
           )}
           {loading && (
             <span className="text-xs text-blue-400 animate-pulse bg-blue-950 px-2 py-0.5 rounded">
@@ -262,6 +297,8 @@ export default function Dashboard() {
               onMouseUp={region.onMouseUp}
               highlightedMatchId={highlightedMatchId}
               onHighlightChange={setHighlightedMatchId}
+              focusedEntity={focusedEntity}
+              onEntityFocus={handleEntityFocus}
               annotations={annotations}
               showAnnotations={showAnnotations}
               onAnnotationAsk={handleAnnotationAsk}
@@ -285,6 +322,24 @@ export default function Dashboard() {
               <InsightsOverlay insights={insights.filter(i => activeInsightTypes.includes(i.type))} />
             </div>
           )}
+
+          {focusedEntity && (
+            <PlayerJourney
+              matchId={focusedEntity.matchId}
+              userId={focusedEntity.userId}
+              isBot={focusedEntity.isBot}
+              label={focusedEntity.label}
+              events={events}
+              matches={matches}
+              watchingTimeline={watchingEntityTimeline}
+              onWatchTimeline={() => {
+                const next = !watchingEntityTimeline
+                setWatchingEntityTimeline(next)
+                if (next) playback.seek(playback.minTime)
+              }}
+              onClose={() => { setFocusedEntity(null); setWatchingEntityTimeline(false) }}
+            />
+          )}
         </div>
 
         <Timeline
@@ -295,6 +350,7 @@ export default function Dashboard() {
           maxTime={playback.maxTime}
           duration={playback.duration}
           matchCount={highlightedMatchId ? 1 : matchIds.length}
+          watchLabel={watchingEntityTimeline && focusedEntity ? focusedEntity.label : null}
           onTogglePlay={playback.togglePlay}
           onSeek={playback.seek}
           onSetSpeed={playback.setSpeed}

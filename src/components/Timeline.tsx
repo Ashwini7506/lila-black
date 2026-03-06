@@ -14,6 +14,7 @@ interface Props {
   maxTime: number
   duration: number
   matchCount: number
+  watchLabel?: string | null
   onTogglePlay: () => void
   onSeek: (t: number) => void
   onSetSpeed: (s: number) => void
@@ -21,10 +22,10 @@ interface Props {
 
 export default function Timeline({
   currentTime, isPlaying, speed, minTime, maxTime, duration,
-  matchCount, onTogglePlay, onSeek, onSetSpeed,
+  matchCount, watchLabel, onTogglePlay, onSeek, onSetSpeed,
 }: Props) {
   const progress = duration > 0 ? (currentTime - minTime) / duration : 0
-  const multi = matchCount > 1
+  const multi = matchCount > 1 && !watchLabel
 
   if (multi) {
     return (
@@ -80,6 +81,13 @@ export default function Timeline({
           className="absolute inset-0 w-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
         />
       </div>
+
+      {/* Entity watch label */}
+      {watchLabel && (
+        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full border border-blue-700/50 text-blue-300 bg-blue-950/40 shrink-0 max-w-36 truncate">
+          {watchLabel}
+        </span>
+      )}
 
       {/* Speed selector */}
       <div className="flex gap-1 shrink-0">

@@ -19,10 +19,12 @@ const MATCH_COLORS = [
 interface Marker {
   cx: number
   cy: number
-  kind: 'start' | 'killed' | 'botkilled' | 'storm' | 'extracted' | 'loot' | 'botkill'
+  kind: 'start' | 'botstart' | 'killed' | 'botkilled' | 'storm' | 'extracted' | 'loot' | 'botkill'
   label: string
   sub: string
   matchId: string
+  userId: string
+  isBot: boolean
 }
 
 interface ClusterResult {
@@ -58,6 +60,7 @@ const INSIGHT_COLORS: Record<string, string> = {
 
 const MARKER_STYLES: Record<Marker['kind'], { color: string; symbol: string }> = {
   start:     { color: '#22D3EE', symbol: '▶' },
+  botstart:  { color: '#F97316', symbol: '🤖' },
   killed:    { color: '#EF4444', symbol: '✕' },
   botkilled: { color: '#A855F7', symbol: '✕' },
   storm:     { color: '#A78BFA', symbol: '⚡' },
@@ -101,7 +104,8 @@ function drawPaths(
   events: PlayerEvent[],
   showHumans: boolean,
   showBots: boolean,
-  highlightedMatchId: string | null
+  highlightedMatchId: string | null,
+  focusedEntity: { matchId: string; userId: string } | null
 ) {
   const byPlayer: Record<string, PlayerEvent[]> = {}
   for (const e of events) {
@@ -117,15 +121,35 @@ function drawPaths(
     const matchId = key.split(':')[0]
     const uid = pts[0].user_id
     const isBot = pts[0].is_bot
-    const dimmed = highlightedMatchId !== null && matchId !== highlightedMatchId
+
+    const isFocused = focusedEntity !== null && matchId === focusedEntity.matchId && uid === focusedEntity.userId
+    const isUnfocused = focusedEntity !== null && !isFocused
+    const dimmedByMatch = highlightedMatchId !== null && matchId !== highlightedMatchId
+
+    const dimmed = isUnfocused || dimmedByMatch
+
     ctx.beginPath()
-    ctx.strokeStyle = isBot ? 'rgba(150,150,150,0.35)' : playerColor(uid)
-    ctx.lineWidth = isBot ? 1 : (dimmed ? 1 : 2)
-    ctx.globalAlpha = dimmed ? 0.07 : (isBot ? 0.5 : 0.85)
+    ctx.strokeStyle = isBot ? '#FFFFFF' : playerColor(uid)
+    ctx.lineWidth = isFocused ? 2.5 : isBot ? 1.5 : (dimmed ? 1 : 2)
+    ctx.globalAlpha = dimmed ? 0.05 : (isBot ? 0.45 : 0.85)
+    if (isBot) ctx.setLineDash([6, 5])
+    else ctx.setLineDash([])
     ctx.moveTo(pts[0].pixel_x, pts[0].pixel_y)
     for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].pixel_x, pts[i].pixel_y)
     ctx.stroke()
+    ctx.setLineDash([])
     ctx.globalAlpha = 1
+
+    // Spawn emoji at path start
+    if (!dimmed) {
+      ctx.save()
+      ctx.globalAlpha = isBot ? 0.85 : 0.9
+      ctx.font = '14px sans-serif'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(isBot ? '🤖' : '👤', pts[0].pixel_x, pts[0].pixel_y - 10)
+      ctx.restore()
+    }
   }
 }
 
@@ -429,7 +453,8 @@ function drawStartEndMarkers(
     ctx.globalAlpha = dimFactor
     ctx.stroke()
 
-    ctx.font = `bold ${m.kind === 'storm' ? 9 : 8}px sans-serif`
+    const isEmoji = symbol.length > 1 || symbol.codePointAt(0)! > 0xFFFF
+    ctx.font = `${isEmoji ? '' : 'bold '}${m.kind === 'storm' ? 9 : isEmoji ? 11 : 8}px sans-serif`
     ctx.fillStyle = color
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
@@ -528,35 +553,35 @@ function drawRegionBox(ctx: CanvasRenderingContext2D, region: Region, isDraft: b
 
 // ── Marker computation ───────────────────────────────────────────────────────
 
-function computeMarkers(events: PlayerEvent[], matchIds: string[], matches: Match[]): Marker[] {
+function computeMarkers(events: PlayerEvent[], matchIds: string[], matches: Match[], showHumans = true, showBots = true): Marker[] {
   const result: Marker[] = []
 
-  // Group human events by (match_id:user_id)
+  const matchLabel = (matchId: string) => {
+    const m = matches.find(m => m.match_id === matchId)
+    return m
+      ? `Match #${m.map_match_number} · ${m.human_count}H${m.bot_count > 0 ? ` ${m.bot_count}B` : ''}`
+      : matchId.slice(0, 8)
+  }
+
+  // ── Human markers ──────────────────────────────────────────────────────────
   const byPlayer: Record<string, PlayerEvent[]> = {}
   for (const e of events) {
-    if (e.is_bot) continue
+    if (e.is_bot || !showHumans) continue
     const key = `${e.match_id}:${e.user_id}`
     if (!byPlayer[key]) byPlayer[key] = []
     byPlayer[key].push(e)
   }
 
   for (const [key, pEvents] of Object.entries(byPlayer)) {
-    const matchId = key.split(':')[0]
-    const matchIdx = matches.findIndex(m => m.match_id === matchId)
-    const match = matches[matchIdx]
-    const matchLabel = match
-      ? `Match #${match.map_match_number} · ${match.human_count}H${match.bot_count > 0 ? ` ${match.bot_count}B` : ''}`
-      : matchId.slice(0, 8)
-
+    const [matchId, userId] = key.split(':')
+    const sub = matchLabel(matchId)
     const sorted = [...pEvents].sort((a, b) => a.ts - b.ts)
 
-    // Start
     const firstPos = sorted.find(e => e.event_type === 'Position')
     if (firstPos) {
-      result.push({ cx: firstPos.pixel_x, cy: firstPos.pixel_y, kind: 'start', label: 'Start', sub: matchLabel, matchId })
+      result.push({ cx: firstPos.pixel_x, cy: firstPos.pixel_y, kind: 'start', label: 'Player spawn', sub, matchId, userId, isBot: false })
     }
 
-    // End
     const lastPos = [...sorted].reverse().find(e => e.event_type === 'Position')
     if (lastPos) {
       const killedByPlayer = sorted.some(e => e.event_type === 'Killed')
@@ -567,22 +592,68 @@ function computeMarkers(events: PlayerEvent[], matchIds: string[], matches: Matc
                   : killedByBot    ? 'Killed by Bot'
                   : storm          ? 'Storm Kill'
                   : 'Survived'
-      result.push({ cx: lastPos.pixel_x, cy: lastPos.pixel_y, kind, label, sub: matchLabel, matchId })
+      result.push({ cx: lastPos.pixel_x, cy: lastPos.pixel_y, kind, label, sub, matchId, userId, isBot: false })
     }
 
-    // All non-position events → hoverable
     for (const e of sorted) {
       let label: string | null = null
       let kind: Marker['kind'] = 'loot'
-      if (e.event_type === 'Loot')          { label = 'Loot';              kind = 'loot'    }
-      else if (e.event_type === 'Kill')     { label = 'Killed a Player';   kind = 'killed'  }
-      else if (e.event_type === 'Killed')   { label = 'Killed by Player';  kind = 'killed'  }
-      else if (e.event_type === 'BotKill')  { label = 'Killed a Bot';      kind = 'botkill' }
-      else if (e.event_type === 'BotKilled'){ label = 'Killed by Bot';     kind = 'botkilled' }
-      else if (e.event_type === 'KilledByStorm') { label = 'Storm Kill';   kind = 'storm'   }
-      if (label) {
-        result.push({ cx: e.pixel_x, cy: e.pixel_y, kind, label, sub: matchLabel, matchId })
-      }
+      if (e.event_type === 'Loot')               { label = 'Loot';             kind = 'loot'     }
+      else if (e.event_type === 'Kill')           { label = 'Killed a Player';  kind = 'killed'   }
+      else if (e.event_type === 'Killed')         { label = 'Killed by Player'; kind = 'killed'   }
+      else if (e.event_type === 'BotKill')        { label = 'Killed a Bot';     kind = 'botkill'  }
+      else if (e.event_type === 'BotKilled')      { label = 'Killed by Bot';    kind = 'botkilled' }
+      else if (e.event_type === 'KilledByStorm')  { label = 'Storm Kill';       kind = 'storm'    }
+      if (label) result.push({ cx: e.pixel_x, cy: e.pixel_y, kind, label, sub, matchId, userId, isBot: false })
+    }
+  }
+
+  // ── Bot markers — numbered per match ───────────────────────────────────────
+  // First compute bot spawn order per match so we can label Bot #1, #2, …
+  const botSpawnOrder: Record<string, number> = {} // key → bot number within match
+  const byBot: Record<string, PlayerEvent[]> = {}
+  for (const e of events) {
+    if (!e.is_bot || !showBots) continue
+    const key = `${e.match_id}:${e.user_id}`
+    if (!byBot[key]) byBot[key] = []
+    byBot[key].push(e)
+  }
+  // Sort each match's bots by their first BotPosition timestamp
+  const byMatchBots: Record<string, { key: string; firstTs: number }[]> = {}
+  for (const [key, bEvents] of Object.entries(byBot)) {
+    const matchId = key.split(':')[0]
+    const firstPos = bEvents.find(e => e.event_type === 'BotPosition')
+    if (!byMatchBots[matchId]) byMatchBots[matchId] = []
+    byMatchBots[matchId].push({ key, firstTs: firstPos?.ts ?? Infinity })
+  }
+  for (const entries of Object.values(byMatchBots)) {
+    entries.sort((a, b) => a.firstTs - b.firstTs)
+    entries.forEach(({ key }, i) => { botSpawnOrder[key] = i + 1 })
+  }
+
+  for (const [key, bEvents] of Object.entries(byBot)) {
+    const [matchId, userId] = key.split(':')
+    const botNum = botSpawnOrder[key] ?? 1
+    const sub = matchLabel(matchId)
+    const sorted = [...bEvents].sort((a, b) => a.ts - b.ts)
+
+    const firstPos = sorted.find(e => e.event_type === 'BotPosition')
+    if (firstPos) {
+      result.push({
+        cx: firstPos.pixel_x, cy: firstPos.pixel_y,
+        kind: 'botstart',
+        label: `Bot #${botNum}`,
+        sub,
+        matchId, userId, isBot: true,
+      })
+    }
+
+    for (const e of sorted) {
+      let label: string | null = null
+      let kind: Marker['kind'] = 'loot'
+      if (e.event_type === 'BotKilled')           { label = `Bot #${botNum} — killed`;      kind = 'botkilled' }
+      else if (e.event_type === 'KilledByStorm')  { label = `Bot #${botNum} — storm kill`;  kind = 'storm'     }
+      if (label) result.push({ cx: e.pixel_x, cy: e.pixel_y, kind, label, sub, matchId, userId, isBot: true })
     }
   }
 
@@ -657,6 +728,8 @@ interface Props {
   onMouseUp: (e: React.MouseEvent<HTMLCanvasElement>) => void
   highlightedMatchId: string | null
   onHighlightChange: (id: string | null) => void
+  focusedEntity?: { matchId: string; userId: string } | null
+  onEntityFocus?: (matchId: string, userId: string, isBot: boolean) => void
   annotations?: AIAnnotation[]
   showAnnotations?: boolean
   onAnnotationAsk?: (ann: AIAnnotation) => void
@@ -668,6 +741,7 @@ export default function MapViewer({
   activeEventTypes, viewMode, insights, showInsights, matchIds, matches,
   selectedRegion, draftRegion, onMouseDown, onMouseMove, onMouseUp,
   highlightedMatchId, onHighlightChange,
+  focusedEntity = null, onEntityFocus,
   annotations = [], showAnnotations = true, onAnnotationAsk,
   onSetRegion,
 }: Props) {
@@ -786,11 +860,11 @@ export default function MapViewer({
     if (viewMode === 'heatmap') {
       drawHeatmap(ctx, visible, showHumans, showBots)
     } else {
-      drawPaths(ctx, visible, showHumans, showBots, highlightedMatchId)
+      drawPaths(ctx, visible, showHumans, showBots, highlightedMatchId, focusedEntity)
       drawMarkers(ctx, visible, activeEventTypes, showHumans, showBots, highlightedMatchId)
     }
 
-    const computed = computeMarkers(visible, matchIds, matches)
+    const computed = computeMarkers(visible, matchIds, matches, showHumans, showBots)
     markersRef.current = computed
     drawMatchLabels(ctx, visible, matchIds, matches, highlightedMatchId)
     clustersRef.current = drawStartEndMarkers(ctx, computed, highlightedMatchId, xform.zoom, matches)
@@ -806,7 +880,7 @@ export default function MapViewer({
 
     ctx.restore()
   }, [events, currentTime, showHumans, showBots, activeEventTypes, viewMode,
-      insights, showInsights, matchIds, matches, selectedRegion, draftRegion, highlightedMatchId, xform])
+      insights, showInsights, matchIds, matches, selectedRegion, draftRegion, highlightedMatchId, focusedEntity, xform])
 
   // Shared helper — compute popup position flags
   const clusterPopupPos = useCallback((relX: number, relY: number, itemCount: number) => {
@@ -859,6 +933,25 @@ export default function MapViewer({
       if (canvasX >= minX && canvasX <= maxX && canvasY >= minY && canvasY <= maxY) return
     }
 
+    // Click near a spawn marker → focus that entity (or toggle off)
+    const SPAWN_THRESHOLD = 20
+    let bestSpawn: Marker | null = null
+    let bestSpawnDist = SPAWN_THRESHOLD
+    for (const m of markersRef.current) {
+      if (m.kind !== 'start' && m.kind !== 'botstart') continue
+      const d = Math.hypot(m.cx - canvasX, m.cy - canvasY)
+      if (d < bestSpawnDist) { bestSpawnDist = d; bestSpawn = m }
+    }
+    if (bestSpawn && onEntityFocus) {
+      const alreadyFocused = focusedEntity?.matchId === bestSpawn.matchId && focusedEntity?.userId === bestSpawn.userId
+      if (alreadyFocused) {
+        onEntityFocus('', '', false) // clear
+      } else {
+        onEntityFocus(bestSpawn.matchId, bestSpawn.userId, bestSpawn.isBot)
+      }
+      return
+    }
+
     // Match highlight: click near a marker to highlight its match; click empty to clear
     if (matchIds.length > 1) {
       const THRESHOLD = 20
@@ -875,7 +968,7 @@ export default function MapViewer({
       onHighlightChange(null)
     }
     onMouseDown(e)
-  }, [xform, onMouseDown, matchIds, clusterPopupPos, selectedRegion])
+  }, [xform, onMouseDown, matchIds, clusterPopupPos, selectedRegion, focusedEntity, onEntityFocus])
 
   const handleCanvasMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (isPanning.current) {
@@ -1255,6 +1348,25 @@ export default function MapViewer({
           {Math.round(zoom * 100)}%
         </div>
       )}
+
+      {/* Human vs Bot legend */}
+      <div className="absolute top-2 right-2 z-10 flex flex-col gap-1.5 bg-gray-950/90 border border-gray-800 rounded-lg px-2.5 py-2 pointer-events-none">
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm leading-none">👤</span>
+          <svg width="30" height="8" className="flex-shrink-0">
+            <line x1="0" y1="4" x2="30" y2="4" stroke="#60A5FA" strokeWidth="2.5" />
+          </svg>
+          <span className="text-[10px] text-gray-300">Human</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm leading-none">🤖</span>
+          <svg width="30" height="8" className="flex-shrink-0">
+            <line x1="0" y1="4" x2="30" y2="4" stroke="#FFFFFF" strokeWidth="2.5" strokeDasharray="6 4" />
+          </svg>
+          <span className="text-[10px] text-gray-300">Bot</span>
+        </div>
+        <div className="text-[9px] text-gray-600 mt-0.5">Click spawn to focus</div>
+      </div>
 
 
       <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between z-10 gap-2">
