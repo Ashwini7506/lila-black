@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase'
 
 // ── Replace with your YouTube video ID after uploading ──────────────────────
-const VIDEO_ID = 'YOUR_VIDEO_ID'
+const VIDEO_ID = 'TE8K3wot-fM'
 
 // ── Feature list with timestamps (seconds) — update after recording ─────────
 const FEATURES = [
